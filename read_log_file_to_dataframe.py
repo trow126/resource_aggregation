@@ -1,20 +1,16 @@
 import pandas as pd
 import datetime
 
-# ログファイルの各行を処理してデータを抽出する関数
-def process_log_line(line):
-    return line.strip().split('\t')
-
 # ログファイルを読み込んでDataFrameに変換する関数
 def read_log_file_to_dataframe(file_path):
     # ログファイルを読み込む
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding="utf-8") as file:
         lines = file.readlines()
 
     # ログファイルの各行を処理し、データを抽出する
     data = []
     for line in lines:
-        row = process_log_line(line)
+        row = line.strip().split('\t')  # process_log_lineの処理を組み込む
         data.append(row)
 
     # データを整形してDataFrameに変換する
