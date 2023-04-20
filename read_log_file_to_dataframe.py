@@ -1,37 +1,39 @@
 import pandas as pd
-import datetime
 
 # ログファイルを読み込んでDataFrameに変換する関数
 def read_log_file_to_dataframe(file_path):
-    # ログファイルを読み込む
     with open(file_path, 'r', encoding="utf-8") as file:
         lines = file.readlines()
 
-    # ログファイルの各行を処理し、データを抽出する
     data = []
+    current_time = None
     for line in lines:
-        row = line.strip().split('\t')  # process_log_lineの処理を組み込む
-        data.append(row)
+        line = line.strip()
+        if "年" in line:
+            current_time = line
+        else:
+            row = process_log_line(line)
+            row.insert(0, current_time)
+            data.append(row)
 
-    # データを整形してDataFrameに変換する
-    df = pd.DataFrame(data)
-    df = df.pivot_table(index=0, columns=1, aggfunc=lambda x: x)
-
-    # カラム名をリネーム
-    df.columns = [f"{col[0]}_{idx + 1}" for idx, col in enumerate(df.columns)]
-
-    # インデックスをdatetime型に変換
-    df.index = pd.to_datetime(df.index, format="%Y年%m月%d日\t%H時%M分%S秒")
-
+    df = pd.DataFrame(data, columns=["時間", "種類", "値1", "値2"])
     return df
 
-# file_pathsのファイルを1件ずつ処理する
-dfs = []
-for file_path in file_paths:
-    df = read_log_file_to_dataframe(file_path)
-    dfs.append(df)
+# ログファイルの各行を処理してデータを抽出する関数
+def process_log_line(line):
+    return line.split('\t')
 
-# 各DataFrameを結合する
-combined_df = pd.concat(dfs)
+# ファイルパスリストからすべてのログファイルを読み込み、1つのDataFrameに結合する
+def read_all_log_files(file_paths):
+    all_dataframes = []
 
-print(combined_df)
+    for file_path in file_paths:
+        df = read_log_file_to_dataframe(file_path)
+        all_dataframes.append(df)
+
+    merged_df = pd.concat(all_dataframes, ignore_index=True)
+    return merged_df
+
+# 使用例
+merged_df = read_all_log_files(file_paths)
+print(merged_df)
